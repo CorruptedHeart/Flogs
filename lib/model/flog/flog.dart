@@ -37,7 +37,7 @@ class FLog {
     Exception exception,
     String dataLogType,
     StackTrace stacktrace,
-  }) async {
+  }) {
     // prevent to write LogLevel.ALL and LogLevel.OFF to db
     if (![LogLevel.OFF, LogLevel.ALL].contains(type)) {
       _logThis(className, methodName, text, type, exception, dataLogType, stacktrace);
@@ -58,7 +58,7 @@ class FLog {
     dynamic exception,
     String dataLogType,
     StackTrace stacktrace,
-  }) async {
+  }) {
     _logThis(className, methodName, text, LogLevel.TRACE, exception, dataLogType, stacktrace);
   }
 
@@ -76,7 +76,7 @@ class FLog {
     Exception exception,
     String dataLogType,
     StackTrace stacktrace,
-  }) async {
+  }) {
     _logThis(className, methodName, text, LogLevel.DEBUG, exception, dataLogType, stacktrace);
   }
 
@@ -94,7 +94,7 @@ class FLog {
     dynamic exception,
     String dataLogType,
     StackTrace stacktrace,
-  }) async {
+  }) {
     _logThis(className, methodName, text, LogLevel.INFO, exception, dataLogType, stacktrace);
   }
 
@@ -112,7 +112,7 @@ class FLog {
     Exception exception,
     String dataLogType,
     StackTrace stacktrace,
-  }) async {
+  }) {
     _logThis(className, methodName, text, LogLevel.WARNING, exception, dataLogType, stacktrace);
   }
 
@@ -130,7 +130,7 @@ class FLog {
     Exception exception,
     String dataLogType,
     StackTrace stacktrace,
-  }) async {
+  }) {
     _logThis(className, methodName, text, LogLevel.ERROR, exception, dataLogType, stacktrace);
   }
 
@@ -148,7 +148,7 @@ class FLog {
     Exception exception,
     String dataLogType,
     StackTrace stacktrace,
-  }) async {
+  }) {
     _logThis(className, methodName, text, LogLevel.SEVERE, exception, dataLogType, stacktrace);
   }
 
@@ -166,35 +166,34 @@ class FLog {
     Exception exception,
     String dataLogType,
     StackTrace stacktrace,
-  }) async {
+  }) {
     _logThis(className, methodName, text, LogLevel.FATAL, exception, dataLogType, stacktrace);
   }
 
   /// printLogs
   ///
   /// This will return array of logs and print them as a string using StringBuffer()
-  static void printLogs() async {
+  static Future<void> printLogs() async {
     print(Constants.PRINT_LOG_MSG);
 
-    _getAllLogs().then((logs) {
-      var buffer = StringBuffer();
+    var logs = await _getAllLogs();
+    var buffer = StringBuffer();
 
-      if (logs.length > 0) {
-        logs.forEach((log) {
-          buffer.write(Formatter.format(log, _config));
-        });
-        print(buffer.toString());
-      } else {
-        print("No logs found!");
-      }
-      buffer.clear();
-    });
+    if (logs.length > 0) {
+      logs.forEach((log) {
+        buffer.write(Formatter.format(log, _config));
+      });
+      print(buffer.toString());
+    } else {
+      print("No logs found!");
+    }
+    buffer.clear();
   }
 
   /// printDataLogs
   ///
   /// This will return array of logs grouped by dataType and print them as a string using StringBuffer()
-  static void printDataLogs({
+  static Future<void> printDataLogs({
     List<String> dataLogsType,
     List<String> logLevels,
     int startTimeInMillis,
@@ -203,35 +202,33 @@ class FLog {
   }) async {
     print(Constants.PRINT_DATA_LOG_MSG);
 
-    _getAllSortedByFilter(
+    var logs = await _getAllSortedByFilter(
             filters: Filters.generateFilters(
                 dataLogsType: dataLogsType,
                 logLevels: logLevels,
                 startTimeInMillis: startTimeInMillis,
                 endTimeInMillis: endTimeInMillis,
-                filterType: filterType))
-        .then((logs) {
-      var buffer = StringBuffer();
+                filterType: filterType));
+    var buffer = StringBuffer();
 
-      if (logs.length > 0) {
-        logs.forEach((log) {
-          buffer.write(Formatter.format(log, _config));
-        });
-        print(buffer.toString());
-      } else {
-        print("No logs found!");
-      }
-      buffer.clear();
-    });
+    if (logs.length > 0) {
+      logs.forEach((log) {
+        buffer.write(Formatter.format(log, _config));
+      });
+      print(buffer.toString());
+    } else {
+      print("No logs found!");
+    }
+    buffer.clear();
   }
 
   /// printFileLogs
   ///
   /// This will print logs stored in a file as string using StringBuffer()
-  static void printFileLogs() async {
+  static Future<void> printFileLogs() async {
     print(Constants.PRINT_LOG_MSG);
 
-    _storage.readLogsToFile().then(print);
+    await _storage.readLogsToFile().then(print);
   }
 
   /// exportLogs
@@ -430,7 +427,7 @@ class FLog {
   /// _writeLogs
   ///
   /// This will write logs to local database
-  static _writeLogs(Log log) async {
+  static Future<void> _writeLogs(Log log) async {
     //check to see if user provides a valid configuration and logs are enabled
     //if not then don't do anything
     if (_isLogsConfigValid()) {
@@ -457,7 +454,7 @@ class FLog {
   /// This will check if user provided any configuration and logs are enabled
   /// if yes, then it will return true
   /// else it will return false
-  static _isLogsConfigValid() {
+  static bool _isLogsConfigValid() {
     return _config != null && _config.isLogsEnabled;
   }
 }
